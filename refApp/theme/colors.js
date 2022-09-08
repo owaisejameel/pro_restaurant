@@ -1,0 +1,22 @@
+export const colors = {
+  //define colors here
+  darkishBlue: '#004491',
+  pastelRed: '#e65e52',
+  charcoalGrey: '#3e454f',
+  darkGreyBlue: '#31414f',
+  greenButton: '#29af9d',
+  white: '#fff',
+  black: '#000',
+  borderduckEggBlue: '#eaf0fb',
+  paleGrey: '#f6f8fa',
+  paleGreyTwo: '#eef2f6',
+  LightlightNavy: '#195aa4',
+  boderdarkishBlueTwo: '#054995',
+  lightBlueGrey: '#d8e2ea',
+  coolGrey:'#8c9096',
+  darkishBlueTwo:'#054995',
+  coolGreyTwo :"#8b8f95",
+  whiteTwo:"#ededed",
+  darkBlueGrey: "#101c2f",
+  // lightBackgroudcolor: '#eaf0fb',
+};
