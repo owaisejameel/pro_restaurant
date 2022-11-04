@@ -1,30 +1,33 @@
-import React from 'react'
-import {Grid,Box} from "@mui/material"
+import React from "react";
+import { Grid, Box } from "@mui/material";
+
+import { makeStyles } from "@mui/styles";
 
 const Landing = () => {
+  const classes = useStyles();
   return (
-      <Grid container
+    <Grid
+      container
       alignItems="flex-start"
-      sx={{
+      style={{
         height: "90vh",
-        border:1,
-        backgroundColor : "khaki",
-        p:5,
-      }}>
-
-        <Box
+        border: 1,
+        backgroundColor: "khaki",
+        p: 5,
+      }}
+    >
+      <Box
         sx={{
-            p:4,
-            borderRadius: 1,
-            borderColor: "red",
-            backgroundColor:"green"
+          p: 4,
+          borderRadius: 1,
+          borderColor: "red",
+          backgroundColor: "green",
+        }}
+      >
+        Landing Page
+      </Box>
+    </Grid>
+  );
+};
 
-        }}>
-            hello
-            </Box>
-
-      </Grid>
-  )
-}
-
-export default Landing
+export default Landing;

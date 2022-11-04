@@ -1,85 +1,126 @@
-import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  Divider,
-  Grid,
-  TextField,
-  Typography,
-} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { Box, Divider, Grid, Typography, Button } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import GoogleIcon from "@mui/icons-material/Google";
 import logo from "../../assets/logo.png";
 import loginBackground from "../../assets/loginBackground.jpg";
-import { Link, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 
-import * as LOGIN_CONST from "../../utils/Constants";
-import {
-  ButtonPrimary,
-  ButtonOTP,
-  Field,
-  ErrorText,
-  TypographyText,
-  TypographyBold,
-} from "../../components/StyledComponents/StyledComponents ";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 
-const isEmail = (email) => {
-  return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email);
-};
+import * as CONST from "../../utils/Constants";
+import { Field } from "../../components/StyledComponents/StyledComponents ";
 
-const isNumber = (val) => {
-  let isnum = /^\d+$/.test(val);
-  return isnum;
-};
+import * as VALIDATORS from "../../utils/Validators";
+import { makeStyles } from "@mui/styles";
 
 const Login = () => {
-  const [phone, setPhone] = useState(""); //state to store phone and email value
-  const [password, setPassword] = useState(""); //state to store passsword value
-  const [showPassword, setShowPassword] = useState(false); //state for password show and hide
-  const [forgotPage, setForgotPage] = useState(false); //state to show forgot page (conditionally)
-  const [forgotError, setForgotError] = useState(false); // state to handle forgot page field's error
+  const classes = useStyles();
 
+  // variable for navigation and dispatching actions
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  // const messages = useSelector((state) => state.userLoginReducer.message);
+  // console.log("message from redux state.......", messages);
+
+  //states for holding loign fields values
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+
+  //state for handling login fied's error
   const [phoneError, setPhoneError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
-  const [invalidPhoneError, setInvalidPhoneError] = useState(false);
-  const [invalidEmailError, setInvalidEmailError] = useState(false);
 
-  const [invalidError, setInvalidError] = useState(false);
+  //states for making password show and hide:
+  const [showPassword, setShowPassword] = useState(false);
 
-  // const [errorsLogin, setErrorsLogin] = useState({
-  //   phone: false,
-  //   password: false,
-  // });
+  //state to show forgot page (conditionally)
+  const [forgotPage, setForgotPage] = useState(false);
 
-  const handleBlur = (e) => {
-    console.log("handleBLur", e.target.name);
+  //states for holding forgotpassword field value
+  const [emailPhoneForgotField, setEmailPhoneForgotField] = useState("");
+
+  // state to handle forgot page field's error
+  const [forgotError, setForgotError] = useState(false);
+
+  //state to know type is Email or Phone
+  const [typePE, setTypePE] = useState("");
+  const [typeForgot, setTypeForgot] = useState("");
+
+  //function for navigation
+  const navigateToOTP = () => {
+    navigate("onetimepassword");
+  };
+
+  const navigateToHome = () => {
+    navigate("home");
+  };
+
+  //function for Login
+  const onLogin = () => {
+    let user = {
+      login: phone,
+      password: password,
+    };
+
+    let isEmail_phone = "";
+
     if (phone.length == 0) {
       setPhoneError(true);
+    } else if (VALIDATORS.isEmail(phone)) {
+      setTypePE("");
+      isEmail_phone = "email";
+    } else if (VALIDATORS.isMobile(phone)) {
+      setTypePE("");
+      isEmail_phone = "phone";
+    } else {
+      setTypePE("Invalid Phone/Email");
     }
 
     if (password.length == 0) {
       setPasswordError(true);
+    } else if (isEmail_phone === "email" || isEmail_phone === "phone") {
+      dispatch({
+        type: "USER_LOGIN_SAGA",
+        payload: {
+          user: user,
+          typePE: isEmail_phone,
+          navigation: navigateToHome,
+        },
+      });
     }
   };
 
-  const handleSubmit = () => {
-    if (phone.length == 0) {
-      setPhoneError(true);
+  const onForgotSubmit = () => {
+    let isEmail_phone = "";
+    if (emailPhoneForgotField.length === 0) {
+      setForgotError(true);
+    } else if (VALIDATORS.isEmail(emailPhoneForgotField)) {
+      setTypeForgot("");
+      isEmail_phone = "email";
+    } else if (VALIDATORS.isMobile(emailPhoneForgotField)) {
+      setTypeForgot("");
+      isEmail_phone = "phone";
+    } else {
+      setTypeForgot("Invalid Phone/Email");
     }
 
-    if (password.length == 0) {
-      setPasswordError(true);
+    if (isEmail_phone === "email" || isEmail_phone === "phone") {
+      dispatch({
+        type: "USER_FORGOT_SAGA",
+        payload: {
+          type: isEmail_phone,
+          email_phone: emailPhoneForgotField,
+          navigation: navigateToOTP,
+        },
+      });
     }
-  };
-
-  const handleForgotSubmit = () => {
-    setForgotError(true);
-    console.log("handleforgotsubmit", forgotError);
   };
 
   return (
@@ -90,11 +131,9 @@ const Login = () => {
         // backgroundPosition: "center",
         // backgroundSize: "cover",
         // backgroundRepeat: "no-repeat",
-        background: `linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${loginBackground}) center/cover no-repeat `,
-      }}
-      sx={{
         width: "100vw",
         height: "100vh",
+        background: `linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${loginBackground}) center/cover no-repeat `,
       }}
       justifyContent="center"
       alignItems="center"
@@ -109,29 +148,19 @@ const Login = () => {
         md={5}
         lg={4}
         xl={3}
-        sx={{
-          backgroundColor: "rgba(255, 255, 255)",
-          borderRadius: "16px",
-          boxShadow: 8,
-          p: 5,
-          gap: 2,
-        }}
+        className={classes.centerDiv}
       >
         <Grid item>
           <Box
             component="img"
             src={logo}
             alt="login"
-            sx={{
-              width: 280,
-              height: 60,
-              mb: 4,
-            }}
+            style={{ width: 280, height: 60, marginBottom: "32px" }}
           />
         </Grid>
 
         {!forgotPage && (
-          <Grid container sx={{ gap: 2 }}>
+          <Grid container style={{ gap: "16px" }}>
             <Grid item container>
               <Field
                 fullWidth
@@ -141,22 +170,18 @@ const Login = () => {
                   disableUnderline: true,
                 }}
                 onChange={(e) => setPhone(e.target.value)}
-                onBlur={handleBlur}
-                variant="standard"
-                onFocus={() => {
-                  setInvalidEmailError(false);
-                  setInvalidPhoneError(false);
-                }}
-                placeholder={LOGIN_CONST.PHONE_EMAIL_PLACEHOLDER}
+                onFocus={() => setTypePE("")}
+                // variant="standard"
+                variant="outlined"
+                placeholder={CONST.PHONE_EMAIL_PLACEHOLDER}
               />
               {phone.length == 0 && phoneError && (
-                <ErrorText>Email / Phone Number is required</ErrorText>
+                <Typography className={classes.ErrorText}>
+                  {CONST.ERROR_TEXT_PHONE_EMAIL_REQ}
+                </Typography>
               )}
-              {phone.length != 0 && invalidPhoneError && (
-                <ErrorText>Invalid Phone Number</ErrorText>
-              )}
-              {phone.length != 0 && invalidEmailError && (
-                <ErrorText>Invalid Email</ErrorText>
+              {phone.length != 0 && typePE == "Invalid Phone/Email" && (
+                <Typography className={classes.ErrorText}>{typePE}</Typography>
               )}
             </Grid>
 
@@ -166,9 +191,9 @@ const Login = () => {
                 name="password"
                 value={password}
                 type={showPassword ? "text" : "password"}
-                variant="standard"
+                // variant="standard"
+                variant="outlined"
                 onChange={(e) => setPassword(e.target.value)}
-                onBlur={handleBlur}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment
@@ -184,75 +209,52 @@ const Login = () => {
                   ),
                   disableUnderline: true,
                 }}
-                placeholder={LOGIN_CONST.PASSWORD_PLACEHOLDER}
+                placeholder={CONST.PASSWORD_PLACEHOLDER}
               />
               {password.length === 0 && passwordError && (
-                <ErrorText>Password required</ErrorText>
+                <Typography className={classes.ErrorText}>
+                  {CONST.ERROR_TEXT_PASSWORD}
+                </Typography>
               )}
               {/* {password.length >= 1 && password.length < 8 && (
                 <ErrorText>Minimum Password length is 8.</ErrorText>
               )} */}
             </Grid>
 
-            <ButtonPrimary fullWidth onClick={handleSubmit}>
-              {LOGIN_CONST.CONTINUE}
-            </ButtonPrimary>
-          </Grid>
-        )}
-
-        {!forgotPage && (
-          <Grid container justifyContent="flex-end">
-            <Typography
-              onClick={() => setForgotPage(true)}
-              sx={{
-                mt: -0.5,
-                fontSize: 16,
-                cursor: "pointer",
-                color: (theme) => theme.palette.error.light,
-                textDecoration: "underline",
-              }}
+            <Button
+              variant="contained"
+              className={classes.btncontainedPrimary}
+              fullWidth
+              onClick={onLogin}
+              style={{ marginBottom: "16px" }}
             >
-              {LOGIN_CONST.FORGOT_PASSWORD}
-            </Typography>
+              {CONST.CONTINUE}
+            </Button>
           </Grid>
         )}
 
-        {!forgotPage && <Divider flexItem> or </Divider>}
+        {!forgotPage && <Divider flexItem></Divider>}
 
         {!forgotPage && (
-          <ButtonOTP
+          <Button
+            variant="outlined"
+            className={classes.btnOutlinedPrimary}
             fullWidth
-            startIcon={
-              <EmailIcon
-                style={{ fontSize: "30px" }}
-                sx={{
-                  color: (theme) => theme.palette.error.light,
-                }}
-              />
-            }
+            startIcon={<EmailIcon />}
           >
-            {LOGIN_CONST.LOGIN_OTP}
-          </ButtonOTP>
+            {CONST.LOGIN_OTP}
+          </Button>
         )}
 
         {!forgotPage && (
-          <ButtonOTP
+          <Button
+            variant="outlined"
+            className={classes.btnOutlinedPrimary}
             fullWidth
-            startIcon={
-              <GoogleIcon
-                // style={{ fontSize: "30px", marginLeft: "10px" }}
-                sx={{
-                  "&.MuiSvgIcon-root": {
-                    fontSize: 30,
-                    ml: 1,
-                  },
-                  color: (theme) => theme.palette.primary.light,
-                }}
-              />
-            }
+            startIcon={<GoogleIcon style={{ marginLeft: "10px" }} />}
           >
-            {LOGIN_CONST.CONTINUE_GOOGLE}
-          </ButtonOTP>
+            {CONST.CONTINUE_GOOGLE}
+          </Button>
         )}
 
         {forgotPage && (
@@ -261,40 +263,55 @@ const Login = () => {
             justifyContent="center"
             direction="column"
             alignItems="center"
-            sx={{ gap: 2 }}
+            style={{ gap: "16px" }}
           >
-            <TypographyText sx={{ mb: 2, fontSize: 30 }}>
-              {LOGIN_CONST.FORGOT_PASSWORD}
-            </TypographyText>
-            <TypographyBold
-              sx={{
-                fontSize: 14,
-                mt: -1,
-                lineHeight: "18px",
-                color: (theme) => theme.palette.primary.light,
+            <Typography variant="h4" style={{ marginBottom: "16px" }}>
+              {CONST.FORGOT_PASSWORD}
+            </Typography>
+            <Typography
+              color="primary"
+              style={{
+                fontWeight: "600",
               }}
             >
-              {LOGIN_CONST.FORGOT_PASSWORD_PAGE_HEADING}
-            </TypographyBold>
+              {CONST.FORGOT_PASSWORD_PAGE_HEADING}
+            </Typography>
 
             <Grid container>
               <Field
                 name="forgotEmail"
-                variant="standard"
-                placeholder={LOGIN_CONST.PHONE_EMAIL_PLACEHOLDER}
+                // variant="standard"
+                variant="outlined"
+                placeholder={CONST.PHONE_EMAIL_PLACEHOLDER}
                 fullWidth
+                value={emailPhoneForgotField}
                 InputProps={{ disableUnderline: true }}
+                onFocus={() => setTypeForgot("")}
                 failed={forgotError}
+                onChange={(e) => setEmailPhoneForgotField(e.target.value)}
               />
-              {forgotError && (
-                <ErrorText>Email / Phone Number required</ErrorText>
+              {forgotError && emailPhoneForgotField.length == 0 && (
+                <Typography className={classes.ErrorText}>
+                  {CONST.ERROR_TEXT_PHONE_EMAIL_REQ}
+                </Typography>
               )}
+              {emailPhoneForgotField.length !== 0 &&
+                typeForgot === "Invalid Phone/Email" && (
+                  <Typography className={classes.ErrorText}>
+                    {typeForgot}
+                  </Typography>
+                )}
             </Grid>
 
             <Grid container>
-              <ButtonPrimary fullWidth onClick={handleForgotSubmit}>
-                {LOGIN_CONST.SUBMIT}
-              </ButtonPrimary>
+              <Button
+                className={classes.btncontainedPrimary}
+                variant="contained"
+                fullWidth
+                onClick={onForgotSubmit}
+              >
+                {CONST.SUBMIT}
+              </Button>
             </Grid>
           </Grid>
         )}
@@ -302,57 +319,122 @@ const Login = () => {
         <Divider flexItem />
 
         {!forgotPage && (
-          <Grid container>
-            <TypographyText>{LOGIN_CONST.NEW_USER}</TypographyText>
-            <NavLink
-              style={{
-                textDecoration: "none",
-              }}
-              to="signup"
-            >
-              <TypographyText
-                sx={{
-                  color: (theme) => theme.palette.error.light,
-                  ml: 0.5,
-                  cursor: "pointer",
+          <Grid container alignItems="baseline" justifyContent="space-between">
+            <Grid item xs={8} container>
+              <Typography>{CONST.NEW_USER}</Typography>
+              <NavLink
+                style={{
+                  textDecoration: "none",
                 }}
+                to="signup"
               >
-                {LOGIN_CONST.CREATE_AN_ACCOUNT}
-              </TypographyText>
-            </NavLink>
+                <Typography
+                  color="primary"
+                  style={{
+                    marginLeft: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {CONST.CREATE_AN_ACCOUNT}
+                </Typography>
+              </NavLink>
+            </Grid>
+
+            {/* <Divider sx={{ mx: 3 }} orientation="vertical" flexItem /> */}
+
+            <Grid item xs={4} container>
+              <Typography
+                onClick={() => setForgotPage(true)}
+                className={classes.forgotPassLink}
+              >
+                {CONST.FORGOT_PASSWORD}
+              </Typography>
+            </Grid>
           </Grid>
         )}
 
         {forgotPage && (
           <Grid container>
-            <TypographyText>{LOGIN_CONST.ALREADY_HAVE_ACCOUNT}</TypographyText>
+            <Typography>{CONST.ALREADY_HAVE_ACCOUNT}</Typography>
 
-            <TypographyText
+            <Typography
+              color="primary"
               onClick={() => setForgotPage(false)}
-              sx={{
-                color: (theme) => theme.palette.error.light,
-                ml: 0.5,
+              style={{
+                marginLeft: "4px",
                 cursor: "pointer",
               }}
             >
-              {LOGIN_CONST.LOGIN}
-            </TypographyText>
+              {CONST.LOGIN}
+            </Typography>
           </Grid>
         )}
-
-        {/* <Grid container>
-          <TextField
-            sx={{
-              "&.Mui-focused fieldset": {
-                borderColor: "green",
-              },
-            }}
-            fullWidth
-          />
-        </Grid> */}
       </Grid>
     </Grid>
   );
 };
 
 export default Login;
+
+const useStyles = makeStyles((theme) => ({
+  centerDiv: {
+    backgroundColor: "rgba(255, 255, 255)",
+    borderRadius: "16px",
+    // boxShadow: "0px 0px 4px 0px rgba(0,0,0,0.5)",
+    boxShadow: "0px 0px 12px 8px rgba( 255, 99, 71, 0.3)",
+    padding: "32px",
+    gap: "16px",
+  },
+  btncontainedPrimary: {
+    fontSize: "16px",
+    color: "#fff",
+    background: "#66B2FF",
+    borderRadius: "25px",
+    boxShadow: "none",
+    letterSpacing: "1px",
+    textTransform: "none",
+    "&:hover": {
+      boxShadow: "none",
+      background: "#66B2FF",
+    },
+  },
+  btnOutlinedPrimary: {
+    fontSize: "16px",
+    color: "#000",
+    // background: "#fff",
+    background: "	#f8f8ff",
+    border: "1px solid #66B2FF ",
+    borderRadius: "25px",
+    boxShadow: "none",
+    letterSpacing: "1px",
+    textTransform: "none",
+    "& .MuiSvgIcon-root": {
+      fontSize: 30,
+      marginLeft: 1,
+      color: theme.palette.primary.main,
+    },
+    "&:hover": {
+      boxShadow: "none",
+      background: "#f8f8ff",
+      border: "1px solid #66B2FF ",
+    },
+  },
+  ErrorText: {
+    marginLeft: "8px",
+    fontSize: CONST.FONT_SIZE_12,
+    color: theme.palette.error.main,
+  },
+  forgotPassLink: {
+    marginTop: "-4px",
+    fontSize: 16,
+    cursor: "pointer",
+    color: theme.palette.error.light,
+    textDecoration: "underline",
+  },
+
+  // paper: {
+  //   padding: theme.spacing(2),
+  //   textAlign: "center",
+  //   color: theme.palette.text.secondary,
+  // },
+}));

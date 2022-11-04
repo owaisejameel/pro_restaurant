@@ -1,53 +1,42 @@
 import React from "react";
+
 import { useState } from "react";
 import {
   Box,
-  Button,
   Divider,
   Grid,
-  TextField,
   Typography,
-  Checkbox,
   FormControlLabel,
+  Button,
+  Checkbox,
 } from "@mui/material";
 
+import { Field } from "../../components/StyledComponents/StyledComponents ";
+
 import GoogleIcon from "@mui/icons-material/Google";
-import * as SIGNUP_CONST from "../../utils/Constants";
-
-import { useNavigate } from "react-router-dom";
-
-import logo from "../../assets/logo.png";
-import loginBackground from "../../assets/loginBackground.jpg";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
+
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-import {
-  ButtonPrimary,
-  ButtonOTP,
-  TypographyText,
-  CheckboxStyled,
-  Field,
-  ErrorText,
-} from "../../components/StyledComponents/StyledComponents ";
+import { useDispatch, useSelector } from "react-redux";
 
-const isEmail = (email) => {
-  return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email);
-};
+import * as VALIDATORS from "../../utils/Validators";
 
-const isPasswordValid = (password) => {
-  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d.*)(?=.*\W.*)[a-zA-Z0-9\S]{6,}$/.test(
-    password
-  );
-};
+import logo from "../../assets/logo.png";
+import loginBackground from "../../assets/loginBackground.jpg";
+import * as CONST from "../../utils/Constants";
+import { makeStyles } from "@mui/styles";
 
 const SignUp = () => {
+  const classes = useStyles();
+  //variables for navigation and dispatching action
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [checkedTerms, setCheckedTerms] = useState(false);
+  //states for storing signup form values:
   const [signUpDetails, setSignUpDetails] = useState({
     name: "",
     email: "",
@@ -56,6 +45,12 @@ const SignUp = () => {
     confirmPassword: "",
   });
 
+  //states for making password show and hide:
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [checkedTerms, setCheckedTerms] = useState(false);
+
+  //states for error handling:
   const [errorsSignUp, setErrorsSignUp] = useState({
     name: false,
     email: false,
@@ -63,10 +58,12 @@ const SignUp = () => {
     password: false,
     confirmPassword: false,
   });
-
+  const [invalidNameError, setInvalidNameError] = useState(false);
   const [invalidEmailError, setInvalidEmailError] = useState(false);
+  const [invalidPhoneError, setInvalidPhoneError] = useState(false);
   const [invalidPasswordError, setInvalidPasswordError] = useState(false);
 
+  //function to handle signup form values
   const handleChange = (e) => {
     setSignUpDetails({
       ...signUpDetails,
@@ -74,43 +71,140 @@ const SignUp = () => {
     });
   };
 
+  //function to handle fields blur
   const handleBlur = (e) => {
-    setErrorsSignUp({
-      ...errorsSignUp,
-      [e.target.name]: true,
-    });
-    if (e.target.name == "email") {
-      if (!isEmail(signUpDetails.email)) {
-        setInvalidEmailError(true);
-      }
-    }
-    if (e.target.name == "password") {
-      if (!isPasswordValid(signUpDetails.password)) {
-        setInvalidPasswordError(true);
-      }
-    }
+    // setErrorsSignUp({
+    //   ...errorsSignUp,
+    //   [e.target.name]: true,
+    // });
+    // if(e.target.name == "name"){
+    //   if(!VALIDATORS.isNameValid(signUpDetails.name)){
+    //     setInvalidNameError(true)
+    //   }
+    // }
+    // if (e.target.name == "email") {
+    //   if (!VALIDATORS.isEmail(signUpDetails.email)) {
+    //     setInvalidEmailError(true);
+    //   }
+    // }
+    // if (e.target.name == "phone") {
+    //   if (!VALIDATORS.isPhone(signUpDetails.phone)) {
+    //     setInvalidPhoneError(true);
+    //   }
+    // }
+    // if (e.target.name == "password") {
+    //   if (!VALIDATORS.isPasswordValid(signUpDetails.password)) {
+    //     setInvalidPasswordError(true);
+    //   }
+    // }
   };
 
+  //function to handle field's focus :
   const handleFocus = (e) => {
     setErrorsSignUp({
       ...errorsSignUp,
       [e.target.name]: false,
     });
+    if (e.target.name == "name") {
+      setInvalidNameError(false);
+    }
     if (e.target.name == "email") {
       setInvalidEmailError(false);
+    }
+    if (e.target.name == "phone") {
+      setInvalidPhoneError(false);
     }
     if (e.target.name == "password") {
       setInvalidPasswordError(false);
     }
   };
 
+  //function to navigate to home after sign in response
+  const navigateToHome = () => {
+    navigate("/home");
+  };
+
+  //function on create account button click
+  const onSignUp = () => {
+    console.log("handle onsignup");
+    let userData = {
+      ...signUpDetails,
+    };
+    console.log("singunp details ", userData);
+    const { name, email, phone, password, confirmPassword } = signUpDetails;
+
+    if (
+      name == "" ||
+      email == "" ||
+      phone == "" ||
+      password == "" ||
+      confirmPassword == ""
+    ) {
+      setErrorsSignUp({
+        name: true,
+        email: true,
+        phone: true,
+        password: true,
+        confirmPassword: true,
+      });
+    }
+
+    if (signUpDetails.name.length != 0) {
+      if (!VALIDATORS.isNameValid(signUpDetails.name)) {
+        setInvalidNameError(() => true);
+      }
+    }
+    if (signUpDetails.email.length != 0) {
+      if (!VALIDATORS.isEmail(signUpDetails.email)) {
+        setInvalidEmailError(() => true);
+      }
+    }
+    if (signUpDetails.phone.length != 0) {
+      if (!VALIDATORS.isMobile(signUpDetails.phone)) {
+        setInvalidPhoneError(() => true);
+      }
+    }
+
+    if (signUpDetails.password.length != 0) {
+      console.log("last if...");
+      if (!VALIDATORS.isPasswordValid(signUpDetails.password)) {
+        setInvalidPasswordError(true);
+      }
+    }
+    if (
+      name.length != 0 &&
+      email.length != 0 &&
+      phone.length != 0 &&
+      password.length != 0 &&
+      confirmPassword.length != 0 &&
+      VALIDATORS.isNameValid(name) &&
+      VALIDATORS.isEmail(email) &&
+      VALIDATORS.isMobile(phone) &&
+      VALIDATORS.isPasswordValid(password) &&
+      password === confirmPassword
+    ) {
+      console.warn("dispatch...");
+      dispatch({
+        type: "USER_SIGNUP_SAGA",
+        payload: userData,
+        navigation: navigateToHome,
+      });
+    }
+  };
+
+  //function for Navigation to helpCenter
+  // const navigateToHelpCenter = () => {
+  //   navigate("/home/help-center")
+  // }
+
   return (
     <Grid
       container
-      sx={{ width: "100vw", height: "100vh" }}
       justifyContent="center"
       alignItems="center"
       style={{
+        width: "100vw",
+        height: "100vh",
         background: `linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${loginBackground}) no-repeat center/cover`,
       }}
     >
@@ -119,39 +213,34 @@ const SignUp = () => {
         container
         direction="column"
         alignItems="center"
+        className={classes.centerDiv}
         xs={11}
         sm={7}
         md={5}
         lg={4}
         xl={3}
-        sx={{
-          backgroundColor: "rgba(255, 255, 255)",
-          borderRadius: "16px",
-          boxShadow: 8,
-          p: 4,
-          gap: 2,
-        }}
       >
         <Grid item>
           <Box
             component="img"
             src={logo}
             alt="login"
-            sx={{
+            style={{
               width: 280,
               height: 60,
-              mb: 4,
+              marginBottom: "32px",
             }}
           />
         </Grid>
 
-        <Grid container sx={{ gap: 2 }}>
+        <Grid container style={{ gap: "16px" }}>
           <Grid container>
             <Field
               name="name"
               fullWidth
-              variant="standard"
-              placeholder={SIGNUP_CONST.FULLNAME_PLACEHOLDER}
+              // variant="standard"
+              variant="outlined"
+              placeholder={CONST.FULLNAME_PLACEHOLDER}
               onChange={handleChange}
               onBlur={handleBlur}
               onFocus={handleFocus}
@@ -164,19 +253,27 @@ const SignUp = () => {
               // }}
             />
             {signUpDetails.name.length == 0 && errorsSignUp.name && (
-              <ErrorText>Please enter a name</ErrorText>
+              <Typography className={classes.ErrorText}>
+                {CONST.ERROR_TEXT_NAME}
+              </Typography>
             )}
-            {signUpDetails.name.length >= 1 &&
+            {signUpDetails.name.length != 0 && invalidNameError && (
+              <Typography className={classes.ErrorText}>
+                name shouldn't contain number and special symbols
+              </Typography>
+            )}
+            {/* {signUpDetails.name.length >= 1 &&
               signUpDetails.name.length <= 2 &&
-              errorsSignUp.name && <ErrorText>Name is too short</ErrorText>}
+              errorsSignUp.name && <ErrorText>Name is too short</ErrorText>} */}
           </Grid>
 
           <Grid container>
             <Field
               name="email"
               fullWidth
-              variant="standard"
-              placeholder={SIGNUP_CONST.EMAIL_PLACEHOLDER}
+              // variant="standard"
+              variant="outlined"
+              placeholder={CONST.EMAIL_PLACEHOLDER}
               onChange={handleChange}
               onBlur={handleBlur}
               onFocus={handleFocus}
@@ -189,10 +286,14 @@ const SignUp = () => {
               // }}
             />
             {signUpDetails.email.length == 0 && errorsSignUp.email && (
-              <ErrorText>Please enter email</ErrorText>
+              <Typography className={classes.ErrorText}>
+                {CONST.ERROR_TEXT_EMAIL}
+              </Typography>
             )}
             {signUpDetails.email.length != 0 && invalidEmailError && (
-              <ErrorText>Invalid Email</ErrorText>
+              <Typography className={classes.ErrorText}>
+                {CONST.ERROR_TEXT_EMAIL_INVALID}
+              </Typography>
             )}
           </Grid>
 
@@ -201,8 +302,9 @@ const SignUp = () => {
               name="phone"
               type="number"
               fullWidth
-              variant="standard"
-              placeholder={SIGNUP_CONST.PHONE_PLACEHOLDER}
+              // variant="standard"
+              variant="outlined"
+              placeholder={CONST.PHONE_PLACEHOLDER}
               onChange={handleChange}
               onBlur={handleBlur}
               onFocus={handleFocus}
@@ -215,13 +317,20 @@ const SignUp = () => {
               // }}
             />
             {signUpDetails.phone.length == 0 && errorsSignUp.phone && (
-              <ErrorText>Please enter phone</ErrorText>
+              <Typography className={classes.ErrorText}>
+                {CONST.ERROR_TEXT_PHONE}
+              </Typography>
             )}
-            {signUpDetails.phone.length != 0 &&
+            {signUpDetails.phone.length != 0 && invalidPhoneError && (
+              <Typography className={classes.ErrorText}>
+                {CONST.ERROR_TEXT_PHONE_MUST_10}
+              </Typography>
+            )}
+            {/* {signUpDetails.phone.length != 0 &&
               (signUpDetails.phone.length < 10 ||
                 signUpDetails.phone.length > 10) && (
-                <ErrorText>Phone must be 10 Digits</ErrorText>
-              )}
+                <ErrorText>{CONST.ERROR_TEXT_PHONE_MUST_10}</ErrorText>
+              )} */}
           </Grid>
 
           <Grid container>
@@ -229,8 +338,9 @@ const SignUp = () => {
               name="password"
               type={showPassword ? "text" : "password"}
               fullWidth
-              variant="standard"
-              placeholder={SIGNUP_CONST.PASSWORD_PLACEHOLDER}
+              // variant="standard"
+              variant="outlined"
+              placeholder={CONST.PASSWORD_PLACEHOLDER}
               onBlur={handleBlur}
               onChange={handleChange}
               onFocus={handleFocus}
@@ -252,12 +362,14 @@ const SignUp = () => {
               // }}
             />
             {signUpDetails.password.length == 0 && errorsSignUp.password && (
-              <ErrorText>Please enter password</ErrorText>
+              <Typography className={classes.ErrorText}>
+                {CONST.ERROR_TEXT_PASSWORD}
+              </Typography>
             )}
             {signUpDetails.password.length != 0 && invalidPasswordError && (
-              <ErrorText>
-                Password must contain Capital letter, Special character, digits
-              </ErrorText>
+              <Typography className={classes.ErrorText}>
+                {CONST.ERROR_TEXT_PASSWORD_CONTAIN}
+              </Typography>
             )}
           </Grid>
 
@@ -266,8 +378,9 @@ const SignUp = () => {
               name="confirmPassword"
               fullWidth
               type={showConfirmPassword ? "text" : "password"}
-              variant="standard"
-              placeholder={SIGNUP_CONST.CONFIRM_PASSWORD_PLACEHOLDER}
+              // variant="standard"
+              variant="outlined"
+              placeholder={CONST.CONFIRM_PASSWORD_PLACEHOLDER}
               onChange={handleChange}
               onBlur={handleBlur}
               onFocus={handleFocus}
@@ -283,7 +396,7 @@ const SignUp = () => {
                     </IconButton>
                   </InputAdornment>
                 ),
-                disableUnderline: true,
+                // disableUnderline: true,
               }}
               // sx={{
               //   border: (theme) =>
@@ -295,124 +408,164 @@ const SignUp = () => {
             />
             {signUpDetails.confirmPassword.length == 0 &&
               errorsSignUp.confirmPassword && (
-                <ErrorText>Confirm password in necessary</ErrorText>
+                <Typography className={classes.ErrorText}>
+                  {CONST.ERROR_TEXT_CONFIRM_PASSWORD}
+                </Typography>
               )}
             {signUpDetails.confirmPassword.length != 0 &&
               signUpDetails.confirmPassword != signUpDetails.password && (
-                <ErrorText>confirm password must match passsword</ErrorText>
+                <Typography className={classes.ErrorText}>
+                  {CONST.ERROR_TEXT_CONFIRM_PASSWORD_MATCH}
+                </Typography>
               )}
           </Grid>
 
-          <Grid container direction="row">
+          <Grid container>
             <FormControlLabel
               value="end"
               control={
-                <CheckboxStyled
-                  onChange={(e) => setCheckedTerms(e.target.checked)}
+                <Checkbox
+                  className={classes.checkbx}
+                  disableRipple
+                  onClick={() => setCheckedTerms(!checkedTerms)}
                 />
               }
               label={
                 <Typography
                   component="span"
-                  sx={{
-                    mt: 1.25,
-                    fontSize: 12,
-                    "& b": {
-                      color: (theme) => theme.palette.error.light,
-                    },
-                  }}
+                  className={classes.termsnCondTxtBlue}
                 >
-                  {SIGNUP_CONST.I_AGREE}
+                  {CONST.I_AGREE}
                   <b
-                    style={{ marginLeft: "4px" }}
-                    onClick={() => navigate("/header")}
+                    // onClick={() => navigate("/home/help-center")}
+                    //   onClick={()=>dispatch(
+                    //     {
+                    //       type: "TERMS_N_CONDITION_SAGA",
+                    //       navigation : navigateToHelpCenter
+                    // })}
+                    onClick={() =>
+                      navigate("/home/help-center/terms-condition")
+                    }
                   >
-                    {SIGNUP_CONST.TERMS_N_SERVICE}
+                    {CONST.TERMS_N_SERVICE}
                   </b>
                   ,{" "}
-                  <b style={{ marginLeft: "4px" }}>
-                    {SIGNUP_CONST.PRIVACY_POLICY}{" "}
+                  <b onClick={() => navigate("/home/help-center")}>
+                    {CONST.PRIVACY_POLICY}{" "}
                   </b>
-                  and <b>{SIGNUP_CONST.CONTENT_POLICY}</b>
+                  and <b style={{ marginLeft: 0 }}>{CONST.CONTENT_POLICY}</b>
                 </Typography>
               }
               labelPlacement="end"
             />
           </Grid>
 
-          <ButtonPrimary variant="contained" disabled={!checkedTerms} fullWidth>
-            {SIGNUP_CONST.CREATE_ACCOUNT}
-          </ButtonPrimary>
+          <Button
+            variant="contained"
+            className={classes.btncontainedPrimary}
+            disabled={!checkedTerms}
+            fullWidth
+            onClick={onSignUp}
+          >
+            {CONST.CREATE_ACCOUNT}
+          </Button>
         </Grid>
 
-        <Divider flexItem sx={{ my: 1 }}>
+        {/* <Divider flexItem sx={{ my: 1 }}>
           or
-        </Divider>
+        </Divider> */}
 
-        <ButtonOTP
+        <Button
+          variant="outlined"
+          alignItems="center"
+          className={classes.btnOutlinedPrimary}
           fullWidth
           startIcon={
-            <GoogleIcon
-              style={{ fontSize: "30px", marginLeft: "10px" }}
-              sx={{
-                color: (theme) => theme.palette.primary.light,
-              }}
-            />
+            <GoogleIcon style={{ fontSize: "25px", marginLeft: "10px" }} />
           }
         >
-          Continue with Google
-        </ButtonOTP>
-
-        {/* <Button
-          fullWidth
-          sx={{
-            boxShadow: "none",
-            border: "2px solid grey",
-            borderRadius: "16px",
-            textTransform: "none",
-            py: 1,
-            color: "black",
-            backgroundColor: "#fff",
-            "&:hover": {
-              backgroundColor: "#fff",
-              boxShadow: "none",
-            },
-          }}
-          startIcon={
-            <GoogleIcon
-              sx={{ color: (theme) => theme.palette.primary.light }}
-              style={{ fontSize: "30px", marginLeft: "10px" }}
-            />
-          }
-          variant="contained"
-          color="info"
-        >
-          Continue with Google
-        </Button> */}
+          {CONST.CONTINUE_GOOGLE}
+        </Button>
 
         <Divider flexItem />
 
         <Grid container>
-          <TypographyText>{SIGNUP_CONST.ALREADY_HAVE_ACCOUNT}</TypographyText>
+          <Typography>{CONST.ALREADY_HAVE_ACCOUNT}</Typography>
           <Link style={{ textDecoration: "none" }} to="/">
-            <TypographyText
-              sx={{
-                color: (theme) => theme.palette.error.light,
-                ml: 0.5,
-                cursor: "pointer",
-              }}
-            >
-              {SIGNUP_CONST.LOGIN}
-            </TypographyText>
+            <Typography color="primary" style={{ marginLeft: "4px" }}>
+              {CONST.LOGIN}
+            </Typography>
           </Link>
         </Grid>
-
-        {/* <Grid contaier>
-          <p>{JSON.stringify(signUpDetails)}</p>
-        </Grid> */}
       </Grid>
     </Grid>
   );
 };
+
+const useStyles = makeStyles((theme) => ({
+  centerDiv: {
+    backgroundColor: "rgba(255, 255, 255)",
+    borderRadius: "16px",
+    boxShadow: "0px 0px 4px 0px rgba(0,0,0,0.5)",
+    padding: "32px",
+    gap: "16px",
+  },
+  btncontainedPrimary: {
+    fontSize: "16px",
+    color: "#fff",
+    background: "#66B2FF",
+    borderRadius: "25px",
+    boxShadow: "none",
+    letterSpacing: "1px",
+    textTransform: "none",
+    "&:hover": {
+      boxShadow: "none",
+      background: "#66B2FF",
+    },
+  },
+  btnOutlinedPrimary: {
+    fontSize: "16px",
+    color: "#000",
+    // background: "#fff",
+    background: "	#f8f8ff",
+    border: "1px solid #66B2FF ",
+    borderRadius: "25px",
+    boxShadow: "none",
+    letterSpacing: "1px",
+    textTransform: "none",
+    "& .MuiSvgIcon-root": {
+      fontSize: 30,
+      marginLeft: 1,
+      color: theme.palette.primary.main,
+    },
+    "&:hover": {
+      boxShadow: "none",
+      background: "#f8f8ff",
+      border: "1px solid #66B2FF ",
+    },
+  },
+  ErrorText: {
+    marginLeft: "8px",
+    fontSize: CONST.FONT_SIZE_12,
+    color: theme.palette.error.main,
+  },
+  termsnCondTxtBlue: {
+    fontSize: CONST.FONT_SIZE_12,
+    "& b": {
+      lineHeight: "0px",
+      marginTop: "12px",
+      color: theme.palette.primary.main,
+      marginLeft: "4px",
+    },
+  },
+  checkbx: {
+    "&:hover": {
+      color: theme.palette.primary.main,
+    },
+    "&.Mui-checked": {
+      color: theme.palette.primary.main,
+    },
+  },
+}));
 
 export default SignUp;
