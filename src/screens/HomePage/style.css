@@ -1,0 +1,11 @@
+.box {
+    padding: 32px;
+    border-radius: 8px;
+    border-style: solid;
+    background-color: orange;
+}
+
+.read-more-less--more,
+.read-more-less--less {
+    color: #999;
+}
